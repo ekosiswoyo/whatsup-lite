@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=WhatsUp Lite
+Comment=Lightweight WhatsApp Web desktop client
+Exec=whatsup-lite
+Icon=whatsup-lite
+Terminal=false
+Categories=Network;InstantMessaging;
+StartupNotify=true
+StartupWMClass=WhatsUp Lite

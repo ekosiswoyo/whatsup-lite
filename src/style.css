@@ -1,0 +1,17 @@
+:root { font-family: system-ui, sans-serif; color-scheme: light dark; background: #f2f4f7; color: #17212b; }
+body { margin: 0; padding: 24px; }
+.card { max-width: 520px; margin: auto; background: #fff; border-radius: 14px; padding: 24px; box-shadow: 0 8px 28px #0002; }
+h1 { margin: 0; font-size: 1.45rem; }
+.muted, .note { color: #667781; }
+label { display: flex; justify-content: space-between; align-items: center; gap: 24px; padding: 16px 0; border-bottom: 1px solid #ddd; }
+input { width: 20px; height: 20px; }
+.actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px; }
+button { border: 0; border-radius: 8px; padding: 10px 14px; cursor: pointer; }
+.danger { color: #fff; background: #c62828; }
+.note { font-size: .8rem; line-height: 1.4; }
+#status { min-height: 1.2em; color: #087f5b; }
+@media (prefers-color-scheme: dark) {
+  :root { background: #101416; color: #e9edef; }
+  .card { background: #202c33; box-shadow: none; }
+  label { border-color: #39464d; }
+}

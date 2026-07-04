@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>WhatsUp Lite Settings</title>
+  </head>
+  <body>
+    <main class="card">
+      <h1>WhatsUp Lite</h1>
+      <p class="muted">Pengaturan aplikasi tersimpan lokal.</p>
+      <label><span>Mulai saat komputer menyala</span><input id="autostart" type="checkbox" /></label>
+      <label><span>Close meminimalkan ke tray</span><input id="minimize" type="checkbox" /></label>
+      <div class="actions">
+        <button id="clear" class="danger">Clear cache &amp; session</button>
+        <button id="close">Tutup</button>
+      </div>
+      <p id="status" role="status"></p>
+      <p class="note">Hardware acceleration dikelola WebView sistem. Restart aplikasi setelah mengubah opsi startup.</p>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
