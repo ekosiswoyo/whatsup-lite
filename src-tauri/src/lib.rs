@@ -103,6 +103,12 @@ const INIT_SCRIPT: &str = r#"
 })();
 "#;
 
+#[cfg(target_os = "linux")]
+const WHATSAPP_USER_AGENT: &str = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.1 Safari/605.1.15";
+
+#[cfg(not(target_os = "linux"))]
+const WHATSAPP_USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let app = tauri::Builder::default()
@@ -121,7 +127,7 @@ pub fn run() {
             .inner_size(1200.0, 800.0)
             .min_inner_size(720.0, 520.0)
             .initialization_script(INIT_SCRIPT)
-            .user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36")
+            .user_agent(WHATSAPP_USER_AGENT)
             .build()?;
 
             let open = MenuItem::with_id(app, "open", "Open WhatsApp", true, None::<&str>)?;

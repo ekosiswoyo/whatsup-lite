@@ -130,7 +130,7 @@ WebView2 (Windows) dan WebKitGTK (Linux) mengelola hardware acceleration. Toggle
 - Pilih tray **Reload**.
 - Update WebView2 di Windows atau paket WebKitGTK di Linux.
 - Pilih **Logout / Clear Session**, lalu buka kembali. Ini menghapus login lama.
-- Jika WhatsApp menolak user agent, perbarui string `.user_agent(...)` di `src-tauri/src/lib.rs` mengikuti browser stabil yang saat itu didukung WhatsApp.
+- Jika WhatsApp menolak user agent, perbarui konstanta `WHATSAPP_USER_AGENT` di `src-tauri/src/lib.rs` mengikuti browser stabil yang saat itu didukung WhatsApp. Linux memakai user agent Safari/WebKit karena WebView Tauri di Linux berjalan di atas WebKitGTK; memakai user agent Chrome dapat membuat WhatsApp mengirim bundle yang tidak cocok dengan engine WebKit.
 
 ### Session tidak tersimpan
 
