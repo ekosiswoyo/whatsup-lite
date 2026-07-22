@@ -4,6 +4,7 @@ use tauri::{
     image::Image,
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
+    webview::NewWindowResponse,
     AppHandle, Manager, State, WebviewUrl, WebviewWindowBuilder, WindowEvent,
 };
 
@@ -60,6 +61,47 @@ fn clear_webview(app: &AppHandle) -> Result<(), String> {
 fn clear_session(app: AppHandle) -> Result<(), String> { clear_webview(&app) }
 
 #[tauri::command]
+fn open_external_url(url: &str) -> Result<(), String> {
+    let parsed = url::Url::parse(url).map_err(|e| format!("invalid URL: {e}"))?;
+    if !matches!(parsed.scheme(), "http" | "https") {
+        return Err("only HTTP and HTTPS URLs can be opened".into());
+    }
+
+    open_in_default_browser(parsed.as_str())
+}
+
+#[cfg(target_os = "windows")]
+fn open_in_default_browser(url: &str) -> Result<(), String> {
+    use std::os::windows::process::CommandExt;
+
+    const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+    std::process::Command::new("rundll32.exe")
+        .args(["url.dll,FileProtocolHandler", url])
+        .creation_flags(CREATE_NO_WINDOW)
+        .spawn()
+        .map(|_| ())
+        .map_err(|e| e.to_string())
+}
+
+#[cfg(target_os = "macos")]
+fn open_in_default_browser(url: &str) -> Result<(), String> {
+    std::process::Command::new("open")
+        .arg(url)
+        .spawn()
+        .map(|_| ())
+        .map_err(|e| e.to_string())
+}
+
+#[cfg(all(unix, not(target_os = "macos")))]
+fn open_in_default_browser(url: &str) -> Result<(), String> {
+    std::process::Command::new("xdg-open")
+        .arg(url)
+        .spawn()
+        .map(|_| ())
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 fn shortcut_action(app: AppHandle, state: State<'_, AppState>, action: &str) -> Result<(), String> {
     match action {
         "reload" => app.get_webview_window("main").ok_or("main window not found")?.eval("location.reload()").map_err(|e| e.to_string()),
@@ -89,6 +131,32 @@ fn tray_image() -> Image<'static> {
 
 const INIT_SCRIPT: &str = r#"
 (() => {
+  const openExternally = (value) => {
+    try {
+      const url = new URL(value, location.href);
+      if (url.protocol !== 'http:' && url.protocol !== 'https:') return false;
+      if (url.hostname === 'web.whatsapp.com') return false;
+      window.__TAURI_INTERNALS__?.invoke('open_external_url', { url: url.href });
+      return true;
+    } catch (_) {
+      return false;
+    }
+  };
+
+  document.addEventListener('click', (event) => {
+    const link = event.target instanceof Element ? event.target.closest('a[href]') : null;
+    if (link && openExternally(link.href)) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }
+  }, true);
+
+  const nativeOpen = window.open.bind(window);
+  window.open = (url, ...args) => {
+    if (typeof url === 'string' && openExternally(url)) return null;
+    return nativeOpen(url, ...args);
+  };
+
   document.addEventListener('keydown', (event) => {
     if (!event.ctrlKey) return;
     let action = null;
@@ -113,7 +181,7 @@ const WHATSAPP_USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) App
 pub fn run() {
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_autostart::Builder::new().build())
-        .invoke_handler(tauri::generate_handler![get_settings, set_minimize_to_tray, clear_session, shortcut_action])
+        .invoke_handler(tauri::generate_handler![get_settings, set_minimize_to_tray, clear_session, open_external_url, shortcut_action])
         .setup(|app| {
             let initial = load_settings(app.handle());
             app.manage(AppState { settings: Mutex::new(initial), quitting: AtomicBool::new(false) });
@@ -126,7 +194,14 @@ pub fn run() {
             .title("WhatsUp Lite")
             .inner_size(1200.0, 800.0)
             .min_inner_size(720.0, 520.0)
+            .disable_drag_drop_handler()
             .initialization_script(INIT_SCRIPT)
+            .on_new_window(|url, _| {
+                if matches!(url.scheme(), "http" | "https") {
+                    let _ = open_in_default_browser(url.as_str());
+                }
+                NewWindowResponse::Deny
+            })
             .user_agent(WHATSAPP_USER_AGENT)
             .build()?;
 
